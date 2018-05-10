@@ -14,7 +14,30 @@ const writeToFile = data => {
   });
 };
 
-async () => {
+(async () => {
   const data = [];
   const browser = await puppeteer.launch({ headless: false });
-};
+  const page = await browser.newPage();
+  await page.goto("https://en.wikipedia.org/wiki/Main_Page");
+  await sleep(page, 60000);
+  for (let i = 0; i < count; i++) {
+    await page.click("#n-randompage");
+    const titleNode = await page.$("#firstHeading");
+    const title = await (await titleNode.getProperty("innerText")).jsonValue();
+    const paragraphs = await page.$$("#content p");
+
+    const pageObj = {
+      title,
+      paragrpahs: []
+    };
+
+    paragraphs.forEach(async el => {
+      pageObj.paragrpahs.push({
+        p: await (await el.getProperty("innerText")).jsonValue()
+      });
+    });
+    data.push(pageObj);
+  }
+
+  writeToFile(data);
+})();
